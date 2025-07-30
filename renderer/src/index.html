@@ -8,74 +8,94 @@
 </head>
 <body>
   <div class="titlebar"></div>
-  <div class="container">
-    <aside class="sidebar">
-      <div class="app-header">
-        <h1>账户管理器</h1>
+  
+  <!-- 主密码输入界面 -->
+  <div id="master-password-view" class="view active">
+    <div class="view-header">
+      <h2>请输入主密码</h2>
+    </div>
+    <div class="master-password-form">
+      <div class="form-group">
+        <label for="master-password-input">主密码</label>
+        <input type="password" id="master-password-input" placeholder="请输入主密码以解锁应用">
       </div>
-      <nav class="main-nav">
-        <ul>
-          <li class="active"><a href="#" data-view="accounts">所有账户</a></li>
-          <li><a href="#" data-view="categories">分类管理</a></li>
-          <li><a href="#" data-view="settings">设置</a></li>
-        </ul>
-      </nav>
-      <div class="sidebar-footer">
-        <button id="add-account-btn" class="btn primary">添加账户</button>
+      <div class="form-group">
+        <button id="unlock-app" class="btn primary">解锁</button>
       </div>
-    </aside>
-    
-    <main class="content">
-      <div id="accounts-view" class="view active">
-        <div class="view-header">
-          <h2>所有账户</h2>
-          <div class="search-box">
-            <input type="text" id="search-input" placeholder="搜索账户...">
+    </div>
+  </div>
+  
+  <!-- 主应用界面 -->
+  <div id="main-app-view" class="view">
+    <div class="container">
+      <aside class="sidebar">
+        <div class="app-header">
+          <h1>账户管理器</h1>
+        </div>
+        <nav class="main-nav">
+          <ul>
+            <li class="active"><a href="#" data-view="accounts">所有账户</a></li>
+            <li><a href="#" data-view="categories">分类管理</a></li>
+            <li><a href="#" data-view="settings">设置</a></li>
+          </ul>
+        </nav>
+        <div class="sidebar-footer">
+          <button id="add-account-btn" class="btn primary">添加账户</button>
+        </div>
+      </aside>
+      
+      <main class="content">
+        <div id="accounts-view" class="view active">
+          <div class="view-header">
+            <h2>所有账户</h2>
+            <div class="search-box">
+              <input type="text" id="search-input" placeholder="搜索账户...">
+            </div>
+          </div>
+          
+          <div class="accounts-grid" id="accounts-container">
+            <!-- 账户卡片将通过JavaScript动态生成 -->
           </div>
         </div>
         
-        <div class="accounts-grid" id="accounts-container">
-          <!-- 账户卡片将通过JavaScript动态生成 -->
-        </div>
-      </div>
-      
-      <div id="categories-view" class="view">
-        <div class="view-header">
-          <h2>分类管理</h2>
-        </div>
-        <div class="categories-list">
-          <!-- 分类项将通过JavaScript动态生成 -->
-        </div>
-        <div class="form-group">
-          <button id="add-category-btn" class="btn primary">添加分类</button>
-        </div>
-      </div>
-      
-      <div id="settings-view" class="view">
-        <div class="view-header">
-          <h2>设置</h2>
-        </div>
-        <div class="settings-form">
-          <div class="form-group">
-            <label for="master-password">主密码</label>
-            <input type="password" id="master-password" placeholder="设置主密码以加密存储">
+        <div id="categories-view" class="view">
+          <div class="view-header">
+            <h2>分类管理</h2>
+          </div>
+          <div class="categories-list">
+            <!-- 分类项将通过JavaScript动态生成 -->
           </div>
           <div class="form-group">
-            <label for="auto-lock">自动锁定 (分钟)</label>
-            <select id="auto-lock">
-              <option value="5">5分钟</option>
-              <option value="10">10分钟</option>
-              <option value="15">15分钟</option>
-              <option value="30">30分钟</option>
-              <option value="0">从不</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <button id="save-settings" class="btn primary">保存设置</button>
+            <button id="add-category-btn" class="btn primary">添加分类</button>
           </div>
         </div>
-      </div>
-    </main>
+        
+        <div id="settings-view" class="view">
+          <div class="view-header">
+            <h2>设置</h2>
+          </div>
+          <div class="settings-form">
+            <div class="form-group">
+              <label for="master-password">主密码</label>
+              <input type="password" id="master-password" placeholder="设置主密码以加密存储">
+            </div>
+            <div class="form-group">
+              <label for="auto-lock">自动锁定 (分钟)</label>
+              <select id="auto-lock">
+                <option value="5">5分钟</option>
+                <option value="10">10分钟</option>
+                <option value="15">15分钟</option>
+                <option value="30">30分钟</option>
+                <option value="0">从不</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <button id="save-settings" class="btn primary">保存设置</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   </div>
   
   <!-- 添加账户模态框 -->

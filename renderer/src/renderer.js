@@ -4,10 +4,12 @@ class AccountManager {
   constructor() {
     this.accounts = [];
     this.categories = [];
-    this.currentView = 'accounts';
+    this.currentView = 'master-password'; // 默认显示主密码界面
+    this.masterPasswordSet = false; // 标记是否已设置主密码
     this.initializeEventListeners();
-    this.loadAccounts();
-    this.loadCategories();
+    // 不再在构造函数中直接加载账户和分类数据
+    // this.loadAccounts();
+    // this.loadCategories();
   }
 
   // 初始化事件监听器
@@ -60,21 +62,49 @@ class AccountManager {
     document.getElementById('add-category-btn').addEventListener('click', () => {
       this.addCategory();
     });
+
+    // 保存设置按钮
+    document.getElementById('save-settings').addEventListener('click', () => {
+      this.saveSettings();
+    });
+
+    // 主密码解锁按钮
+    document.getElementById('unlock-app').addEventListener('click', () => {
+      this.unlockApp();
+    });
   }
 
   // 切换视图
   switchView(viewName) {
-    // 更新导航状态
-    document.querySelectorAll('.main-nav a').forEach(link => {
-      link.parentElement.classList.remove('active');
-    });
-    document.querySelector(`[data-view="${viewName}"]`).parentElement.classList.add('active');
+    // 如果当前在主密码界面，且要切换到其他界面，则需要先验证主密码
+    if (this.currentView === 'master-password' && viewName !== 'master-password') {
+      // 这里可以添加额外的验证逻辑
+      // 目前我们假设主密码已经验证通过
+      // 显示主应用界面
+      document.getElementById('master-password-view').classList.remove('active');
+      document.getElementById('main-app-view').classList.add('active');
+    }
 
-    // 显示选中的视图
-    document.querySelectorAll('.view').forEach(view => {
-      view.classList.remove('active');
-    });
-    document.getElementById(`${viewName}-view`).classList.add('active');
+    // 如果是从主应用界面切换回主密码界面
+    if (this.currentView !== 'master-password' && viewName === 'master-password') {
+      // 隐藏主应用界面
+      document.getElementById('main-app-view').classList.remove('active');
+      document.getElementById('master-password-view').classList.add('active');
+    }
+
+    // 更新导航状态（仅在主应用界面内切换时）
+    if (viewName !== 'master-password') {
+      document.querySelectorAll('.main-nav a').forEach(link => {
+        link.parentElement.classList.remove('active');
+      });
+      document.querySelector(`[data-view="${viewName}"]`).parentElement.classList.add('active');
+
+      // 显示选中的视图（仅在主应用界面内切换时）
+      document.querySelectorAll('#main-app-view .view').forEach(view => {
+        view.classList.remove('active');
+      });
+      document.getElementById(`${viewName}-view`).classList.add('active');
+    }
 
     this.currentView = viewName;
   }
@@ -196,6 +226,76 @@ class AccountManager {
   // 关闭账户模态框
   closeAccountModal() {
     document.getElementById('account-modal').style.display = 'none';
+  }
+
+  // 保存设置
+  async saveSettings() {
+    const masterPassword = document.getElementById('master-password').value;
+    
+    if (masterPassword) {
+      try {
+        console.log('发送设置主密码的请求');
+        const response = await window.electronAPI.setMasterPassword(masterPassword);
+        if (response.success) {
+          alert('主密码设置成功！');
+          // 清空输入框
+          document.getElementById('master-password').value = '';
+          this.masterPasswordSet = true;
+        } else {
+          alert('主密码设置失败: ' + response.error);
+        }
+      } catch (error) {
+        console.error('设置主密码时出错:', error);
+        alert('设置主密码时出错: ' + error.message);
+      }
+    } else {
+      alert('请输入主密码');
+    }
+  }
+
+  // 解锁应用
+  async unlockApp() {
+    const masterPassword = document.getElementById('master-password-input').value;
+    
+    if (masterPassword) {
+      try {
+        console.log('发送验证主密码的请求');
+        // 验证主密码
+        const verifyResponse = await window.electronAPI.verifyMasterPassword(masterPassword);
+        if (verifyResponse.success && verifyResponse.valid) {
+          console.log('主密码验证成功');
+          // 设置主密码
+          await window.electronAPI.setMasterPassword(masterPassword);
+          // 获取账户数据
+          const accountsResponse = await window.electronAPI.getAccounts();
+          if (accountsResponse.success) {
+            // 隐藏主密码界面，显示主应用界面
+            document.getElementById('master-password-view').classList.remove('active');
+            document.getElementById('main-app-view').classList.add('active');
+            
+            // 更新当前视图
+            this.currentView = 'accounts';
+            
+            // 加载账户和分类数据
+            this.accounts = accountsResponse.data;
+            this.renderAccounts();
+            this.loadCategories();
+            
+            // 清空输入框
+            document.getElementById('master-password-input').value = '';
+          } else {
+            alert('获取账户数据失败！');
+          }
+        } else {
+          alert('主密码错误！');
+        }
+      } catch (error) {
+        console.error('验证主密码时出错:', error);
+        alert('验证主密码时出错: ' + error.message);
+      }
+    } else {
+      alert('请输入主密码');
+    }
   }
 
   // 保存账户
@@ -357,13 +457,16 @@ class AccountManager {
 
   // 切换密码可见性
   togglePasswordVisibility(button) {
-    const accountId = button.dataset.accountId;
+    const accountId = parseInt(button.dataset.accountId);
     const passwordSpan = button.previousElementSibling;
     
     if (passwordSpan.textContent === '••••••••') {
-      // 这里应该从主进程获取实际密码
-      passwordSpan.textContent = 'password123';
-      button.textContent = '隐藏';
+      // 从账户数据中找到对应的账户并显示实际密码
+      const account = this.accounts.find(acc => acc.id === accountId);
+      if (account) {
+        passwordSpan.textContent = account.password;
+        button.textContent = '隐藏';
+      }
     } else {
       passwordSpan.textContent = '••••••••';
       button.textContent = '显示';
