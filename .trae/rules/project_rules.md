@@ -21,3 +21,27 @@
 - 所有代码变更都需要通过 Pull Request 进行
 - 重要变更需要进行代码审查
 - 保持代码质量和项目一致性
+
+## Python开发规范
+
+### 虚拟环境管理
+- 每个项目都必须创建独立的Python虚拟环境
+- 使用 `python3 -m venv <项目名>_env` 创建虚拟环境
+- 激活虚拟环境：`source <项目名>_env/bin/activate`
+- 创建 requirements.txt 文件管理依赖
+
+### 依赖管理
+- 所有第三方库安装必须在激活的虚拟环境中进行
+- 使用 `pip freeze > requirements.txt` 导出依赖
+- 使用 `pip install -r requirements.txt` 安装依赖
+
+### 代码风格
+- 遵循PEP 8代码规范
+- 使用4个空格缩进
+- 行长度不超过79个字符
+- 适当添加注释和文档字符串
+
+### 测试
+- 为关键功能编写单元测试
+- 使用unittest或pytest框架
+- 测试覆盖率应达到80%以上
