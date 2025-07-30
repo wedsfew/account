@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>账户管理器</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="titlebar"></div>
+  <div class="container">
+    <aside class="sidebar">
+      <div class="app-header">
+        <h1>账户管理器</h1>
+      </div>
+      <nav class="main-nav">
+        <ul>
+          <li class="active"><a href="#" data-view="accounts">所有账户</a></li>
+          <li><a href="#" data-view="categories">分类管理</a></li>
+          <li><a href="#" data-view="settings">设置</a></li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="add-account-btn" class="btn primary">添加账户</button>
+      </div>
+    </aside>
+    
+    <main class="content">
+      <div id="accounts-view" class="view active">
+        <div class="view-header">
+          <h2>所有账户</h2>
+          <div class="search-box">
+            <input type="text" id="search-input" placeholder="搜索账户...">
+          </div>
+        </div>
+        
+        <div class="accounts-grid" id="accounts-container">
+          <!-- 账户卡片将通过JavaScript动态生成 -->
+        </div>
+      </div>
+      
+      <div id="categories-view" class="view">
+        <div class="view-header">
+          <h2>分类管理</h2>
+        </div>
+        <div class="categories-list">
+          <div class="category-item">
+            <span>社交媒体</span>
+            <div class="category-actions">
+              <button class="btn secondary small">编辑</button>
+              <button class="btn danger small">删除</button>
+            </div>
+          </div>
+          <div class="category-item">
+            <span>金融服务</span>
+            <div class="category-actions">
+              <button class="btn secondary small">编辑</button>
+              <button class="btn danger small">删除</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <button id="add-category-btn" class="btn primary">添加分类</button>
+        </div>
+      </div>
+      
+      <div id="settings-view" class="view">
+        <div class="view-header">
+          <h2>设置</h2>
+        </div>
+        <div class="settings-form">
+          <div class="form-group">
+            <label for="master-password">主密码</label>
+            <input type="password" id="master-password" placeholder="设置主密码以加密存储">
+          </div>
+          <div class="form-group">
+            <label for="auto-lock">自动锁定 (分钟)</label>
+            <select id="auto-lock">
+              <option value="5">5分钟</option>
+              <option value="10">10分钟</option>
+              <option value="15">15分钟</option>
+              <option value="30">30分钟</option>
+              <option value="0">从不</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <button id="save-settings" class="btn primary">保存设置</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <!-- 添加账户模态框 -->
+  <div id="account-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">添加新账户</h3>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="account-form">
+          <div class="form-group">
+            <label for="account-name">账户名称</label>
+            <input type="text" id="account-name" required>
+          </div>
+          <div class="form-group">
+            <label for="account-username">用户名</label>
+            <input type="text" id="account-username" required>
+          </div>
+          <div class="form-group">
+            <label for="account-password">密码</label>
+            <div class="password-field">
+              <input type="password" id="account-password" required>
+              <button type="button" class="toggle-password">显示</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="account-category">分类</label>
+            <select id="account-category">
+              <option value="社交媒体">社交媒体</option>
+              <option value="金融服务">金融服务</option>
+              <option value="工作">工作</option>
+              <option value="个人">个人</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <button type="submit" class="btn primary">保存账户</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <script src="renderer.js"></script>
+</body>
+</html>
