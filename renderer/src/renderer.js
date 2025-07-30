@@ -58,6 +58,14 @@ class AccountManager {
       this.filterAccounts(e.target.value);
     });
 
+    // 全部分类按钮
+    const allCategoryButton = document.querySelector('[data-category="all"]');
+    if (allCategoryButton) {
+      allCategoryButton.addEventListener('click', (e) => {
+        this.filterAccountsByCategory('all', e);
+      });
+    }
+
     // 添加分类按钮
     document.getElementById('add-category-btn').addEventListener('click', () => {
       this.addCategory();
@@ -127,10 +135,15 @@ class AccountManager {
   // 加载分类数据
   async loadCategories() {
     try {
+      console.log('开始加载分类数据...');
       const response = await window.electronAPI.getCategories();
+      console.log('分类数据响应:', response);
       if (response.success) {
         this.categories = response.data;
+        console.log('分类数据:', this.categories);
         this.renderCategories();
+        this.renderCategoryFilter(); // 渲染分类筛选按钮
+        console.log('分类筛选按钮渲染完成');
       } else {
         console.error('加载分类数据失败:', response.error);
       }
@@ -153,6 +166,81 @@ class AccountManager {
       const accountCard = this.createAccountCard(account);
       container.appendChild(accountCard);
     });
+  }
+
+  // 渲染分类筛选按钮
+  renderCategoryFilter() {
+    console.log('开始渲染分类筛选按钮...');
+    const container = document.querySelector('.category-filter');
+    console.log('分类容器:', container);
+    
+    if (!container) {
+      console.error('未找到分类筛选容器');
+      return;
+    }
+    
+    // 保留"全部"按钮
+    const allButton = container.querySelector('[data-category="all"]');
+    console.log('全部按钮:', allButton);
+    
+    // 清空容器，但保留"全部"按钮
+    container.innerHTML = '';
+    if (allButton) {
+      container.appendChild(allButton);
+    }
+    
+    console.log('分类数据:', this.categories);
+    // 为每个分类创建按钮
+    this.categories.forEach(category => {
+      console.log('创建分类按钮:', category.name);
+      const button = document.createElement('button');
+      button.className = 'category-btn';
+      button.textContent = category.name;
+      button.dataset.category = category.name;
+      
+      // 添加点击事件监听器
+      button.addEventListener('click', (e) => {
+        this.filterAccountsByCategory(category.name, e);
+      });
+      
+      container.appendChild(button);
+    });
+    
+    // 重新绑定"全部"按钮的事件监听器
+    const newAllButton = container.querySelector('[data-category="all"]');
+    if (newAllButton) {
+      newAllButton.addEventListener('click', (e) => {
+        this.filterAccountsByCategory('all', e);
+      });
+    }
+    
+    console.log('分类筛选按钮渲染完成');
+  }
+
+  // 按分类筛选账户
+  filterAccountsByCategory(categoryName, event) {
+    // 更新按钮激活状态
+    document.querySelectorAll('.category-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    
+    // 如果有事件对象，则激活对应的按钮
+    if (event && event.target) {
+      event.target.classList.add('active');
+    } else {
+      // 否则激活"全部"按钮
+      document.querySelector('[data-category="all"]').classList.add('active');
+    }
+    
+    // 筛选账户
+    if (categoryName === 'all') {
+      this.renderAccounts();
+    } else {
+      const filteredAccounts = this.accounts.filter(account => 
+        account.category === categoryName
+      );
+      this.renderAccounts(filteredAccounts);
+    }
   }
 
   // 创建账户卡片
@@ -279,7 +367,7 @@ class AccountManager {
             // 加载账户和分类数据
             this.accounts = accountsResponse.data;
             this.renderAccounts();
-            this.loadCategories();
+            await this.loadCategories(); // 确保分类数据加载完成
             
             // 清空输入框
             document.getElementById('master-password-input').value = '';
@@ -452,7 +540,9 @@ class AccountManager {
     });
     
     // 重新添加添加分类按钮
-    container.appendChild(addButton);
+    if (addButton) {
+      container.appendChild(addButton);
+    }
   }
 
   // 切换密码可见性
@@ -475,6 +565,12 @@ class AccountManager {
 
   // 过滤账户
   filterAccounts(searchTerm) {
+    // 清除分类筛选按钮的激活状态，并激活"全部"按钮
+    document.querySelectorAll('.category-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    document.querySelector('[data-category="all"]').classList.add('active');
+    
     const filteredAccounts = this.accounts.filter(account => 
       account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       account.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
