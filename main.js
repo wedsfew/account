@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const { getAccounts, addAccount, updateAccount, deleteAccount, getCategories, addCategory, deleteCategory } = require('./db/database');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -58,28 +59,72 @@ app.on('activate', () => {
 
 // IPC handlers for communication between main and renderer processes
 ipcMain.handle('get-accounts', async () => {
-  // Placeholder for account data retrieval
-  return [
-    { id: 1, name: 'Google Account', username: 'user@gmail.com', password: '••••••••', category: 'Email', lastUpdated: '2023-05-15' },
-    { id: 2, name: 'GitHub Account', username: 'user@github.com', password: '••••••••', category: 'Development', lastUpdated: '2023-06-20' },
-    { id: 3, name: 'Bank Account', username: 'user@bank.com', password: '••••••••', category: 'Finance', lastUpdated: '2023-07-10' }
-  ];
+  try {
+    const accounts = await getAccounts();
+    return { success: true, data: accounts };
+  } catch (error) {
+    console.error('获取账户数据失败:', error);
+    return { success: false, error: error.message };
+  }
 });
 
 ipcMain.handle('add-account', async (event, account) => {
-  // Placeholder for adding a new account
-  console.log('Adding account:', account);
-  return { success: true, id: Math.floor(Math.random() * 1000) };
+  try {
+    const result = await addAccount(account);
+    return { success: true, id: result.id };
+  } catch (error) {
+    console.error('添加账户失败:', error);
+    return { success: false, error: error.message };
+  }
 });
 
 ipcMain.handle('update-account', async (event, account) => {
-  // Placeholder for updating an account
-  console.log('Updating account:', account);
-  return { success: true };
+  try {
+    const result = await updateAccount(account);
+    return { success: true, changes: result.changes };
+  } catch (error) {
+    console.error('更新账户失败:', error);
+    return { success: false, error: error.message };
+  }
 });
 
 ipcMain.handle('delete-account', async (event, accountId) => {
-  // Placeholder for deleting an account
-  console.log('Deleting account:', accountId);
-  return { success: true };
+  try {
+    const result = await deleteAccount(accountId);
+    return { success: true, changes: result.changes };
+  } catch (error) {
+    console.error('删除账户失败:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// 分类管理 IPC 处理程序
+ipcMain.handle('get-categories', async () => {
+  try {
+    const categories = await getCategories();
+    return { success: true, data: categories };
+  } catch (error) {
+    console.error('获取分类数据失败:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('add-category', async (event, name) => {
+  try {
+    const result = await addCategory(name);
+    return { success: true, id: result.id };
+  } catch (error) {
+    console.error('添加分类失败:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('delete-category', async (event, categoryId) => {
+  try {
+    const result = await deleteCategory(categoryId);
+    return { success: true, changes: result.changes };
+  } catch (error) {
+    console.error('删除分类失败:', error);
+    return { success: false, error: error.message };
+  }
 });

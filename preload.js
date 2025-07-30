@@ -5,15 +5,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAccounts: () => ipcRenderer.invoke('get-accounts'),
   addAccount: (account) => ipcRenderer.invoke('add-account', account),
   updateAccount: (account) => ipcRenderer.invoke('update-account', account),
-  deleteAccount: (accountId) => ipcRenderer.invoke('delete-account', accountId)
+  deleteAccount: (accountId) => ipcRenderer.invoke('delete-account', accountId),
+  getCategories: () => ipcRenderer.invoke('get-categories'),
+  addCategory: (name) => ipcRenderer.invoke('add-category', name),
+  deleteCategory: (categoryId) => ipcRenderer.invoke('delete-category', categoryId)
 });
-
-// Ensure the API is available before the DOM is loaded
-if (typeof window !== 'undefined') {
-  window.electronAPI = {
-    getAccounts: () => ipcRenderer.invoke('get-accounts'),
-    addAccount: (account) => ipcRenderer.invoke('add-account', account),
-    updateAccount: (account) => ipcRenderer.invoke('update-account', account),
-    deleteAccount: (accountId) => ipcRenderer.invoke('delete-account', accountId)
-  };
-}

@@ -3,9 +3,11 @@
 class AccountManager {
   constructor() {
     this.accounts = [];
+    this.categories = [];
     this.currentView = 'accounts';
     this.initializeEventListeners();
     this.loadAccounts();
+    this.loadCategories();
   }
 
   // 初始化事件监听器
@@ -53,6 +55,11 @@ class AccountManager {
     document.getElementById('search-input').addEventListener('input', (e) => {
       this.filterAccounts(e.target.value);
     });
+
+    // 添加分类按钮
+    document.getElementById('add-category-btn').addEventListener('click', () => {
+      this.addCategory();
+    });
   }
 
   // 切换视图
@@ -75,10 +82,30 @@ class AccountManager {
   // 加载账户数据
   async loadAccounts() {
     try {
-      this.accounts = await window.electronAPI.getAccounts();
-      this.renderAccounts();
+      const response = await window.electronAPI.getAccounts();
+      if (response.success) {
+        this.accounts = response.data;
+        this.renderAccounts();
+      } else {
+        console.error('加载账户数据失败:', response.error);
+      }
     } catch (error) {
       console.error('加载账户数据失败:', error);
+    }
+  }
+
+  // 加载分类数据
+  async loadCategories() {
+    try {
+      const response = await window.electronAPI.getCategories();
+      if (response.success) {
+        this.categories = response.data;
+        this.renderCategories();
+      } else {
+        console.error('加载分类数据失败:', response.error);
+      }
+    } catch (error) {
+      console.error('加载分类数据失败:', error);
     }
   }
 
@@ -145,6 +172,9 @@ class AccountManager {
     const title = document.getElementById('modal-title');
     const form = document.getElementById('account-form');
     
+    // 更新分类下拉列表
+    this.updateCategoryOptions();
+    
     if (account) {
       // 编辑模式
       title.textContent = '编辑账户';
@@ -179,17 +209,22 @@ class AccountManager {
     };
 
     try {
+      let response;
       if (form.dataset.editingId) {
         // 编辑账户
-        account.id = form.dataset.editingId;
-        await window.electronAPI.updateAccount(account);
+        account.id = parseInt(form.dataset.editingId);
+        response = await window.electronAPI.updateAccount(account);
       } else {
         // 添加新账户
-        await window.electronAPI.addAccount(account);
+        response = await window.electronAPI.addAccount(account);
       }
       
-      this.closeAccountModal();
-      this.loadAccounts(); // 重新加载账户列表
+      if (response.success) {
+        this.closeAccountModal();
+        this.loadAccounts(); // 重新加载账户列表
+      } else {
+        console.error('保存账户失败:', response.error);
+      }
     } catch (error) {
       console.error('保存账户失败:', error);
     }
@@ -207,12 +242,117 @@ class AccountManager {
   async deleteAccount(accountId) {
     if (confirm('确定要删除这个账户吗？')) {
       try {
-        await window.electronAPI.deleteAccount(accountId);
-        this.loadAccounts(); // 重新加载账户列表
+        const response = await window.electronAPI.deleteAccount(accountId);
+        if (response.success) {
+          this.loadAccounts(); // 重新加载账户列表
+        } else {
+          console.error('删除账户失败:', response.error);
+        }
       } catch (error) {
         console.error('删除账户失败:', error);
       }
     }
+  }
+
+  // 打开添加分类模态框
+  openCategoryModal() {
+    const modal = document.getElementById('category-modal');
+    const form = document.getElementById('category-form');
+    
+    // 清空表单
+    form.reset();
+    
+    // 显示模态框
+    modal.style.display = 'block';
+  }
+
+  // 关闭添加分类模态框
+  closeCategoryModal() {
+    document.getElementById('category-modal').style.display = 'none';
+  }
+
+  // 添加分类
+  async addCategory() {
+    const categoryName = document.getElementById('category-name').value;
+    if (categoryName) {
+      try {
+        const response = await window.electronAPI.addCategory(categoryName);
+        if (response.success) {
+          this.closeCategoryModal();
+          this.loadCategories(); // 重新加载分类列表
+        } else {
+          console.error('添加分类失败:', response.error);
+        }
+      } catch (error) {
+        console.error('添加分类失败:', error);
+      }
+    }
+  }
+
+  // 删除分类
+  async deleteCategory(categoryId) {
+    if (confirm('确定要删除这个分类吗？这不会删除该分类下的账户。')) {
+      try {
+        const response = await window.electronAPI.deleteCategory(categoryId);
+        if (response.success) {
+          this.loadCategories(); // 重新加载分类列表
+        } else {
+          console.error('删除分类失败:', response.error);
+        }
+      } catch (error) {
+        console.error('删除分类失败:', error);
+      }
+    }
+  }
+
+  // 更新分类下拉列表
+  updateCategoryOptions() {
+    const categorySelect = document.getElementById('account-category');
+    
+    // 清空现有选项（保留默认选项）
+    categorySelect.innerHTML = '';
+    
+    // 添加所有当前分类到下拉列表
+    this.categories.forEach(category => {
+      const option = document.createElement('option');
+      option.value = category.name;
+      option.textContent = category.name;
+      categorySelect.appendChild(option);
+    });
+  }
+
+  // 渲染分类列表
+  renderCategories() {
+    const container = document.querySelector('.categories-list');
+    
+    // 保留添加分类按钮
+    const addButton = container.querySelector('.form-group');
+    
+    // 清空分类列表
+    container.innerHTML = '';
+    
+    // 重新添加分类项
+    this.categories.forEach(category => {
+      const categoryItem = document.createElement('div');
+      categoryItem.className = 'category-item';
+      categoryItem.innerHTML = `
+        <span>${category.name}</span>
+        <div class="category-actions">
+          <button class="btn secondary small" data-category-id="${category.id}" disabled>编辑</button>
+          <button class="btn danger small delete-category" data-category-id="${category.id}">删除</button>
+        </div>
+      `;
+      
+      // 添加删除事件监听器
+      categoryItem.querySelector('.delete-category').addEventListener('click', (e) => {
+        this.deleteCategory(category.id);
+      });
+      
+      container.appendChild(categoryItem);
+    });
+    
+    // 重新添加添加分类按钮
+    container.appendChild(addButton);
   }
 
   // 切换密码可见性
@@ -244,4 +384,39 @@ class AccountManager {
 // 初始化应用
 document.addEventListener('DOMContentLoaded', () => {
   window.accountManager = new AccountManager();
+  
+  // 绑定添加分类按钮事件
+  const addCategoryBtn = document.getElementById('add-category-btn');
+  if (addCategoryBtn) {
+    addCategoryBtn.addEventListener('click', () => {
+      window.accountManager.openCategoryModal();
+    });
+  }
+  
+  // 绑定添加分类表单提交事件
+  const categoryForm = document.getElementById('category-form');
+  if (categoryForm) {
+    categoryForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      window.accountManager.addCategory();
+    });
+  }
+  
+  // 绑定关闭分类模态框事件
+  const categoryModal = document.getElementById('category-modal');
+  const categoryCloseBtn = categoryModal?.querySelector('.close');
+  if (categoryCloseBtn) {
+    categoryCloseBtn.addEventListener('click', () => {
+      window.accountManager.closeCategoryModal();
+    });
+  }
+  
+  // 点击模态框外部关闭模态框
+  if (categoryModal) {
+    categoryModal.addEventListener('click', (e) => {
+      if (e.target === categoryModal) {
+        window.accountManager.closeCategoryModal();
+      }
+    });
+  }
 });
