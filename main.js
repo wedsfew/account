@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const { getAccounts, addAccount, updateAccount, deleteAccount, getCategories, addCategory, deleteCategory } = require('./db/database');
+const { getAccounts, addAccount, updateAccount, deleteAccount, getCategories, addCategory, deleteCategory, setMasterPassword, getMasterPassword, verifyMasterPassword } = require('./db/database');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -125,6 +125,30 @@ ipcMain.handle('delete-category', async (event, categoryId) => {
     return { success: true, changes: result.changes };
   } catch (error) {
     console.error('删除分类失败:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// 主密码设置 IPC 处理程序
+ipcMain.handle('set-master-password', async (event, password) => {
+  try {
+    console.log('收到设置主密码的请求');
+    await setMasterPassword(password);
+    return { success: true };
+  } catch (error) {
+    console.error('设置主密码失败:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// 主密码验证 IPC 处理程序
+ipcMain.handle('verify-master-password', async (event, password) => {
+  try {
+    console.log('收到验证主密码的请求');
+    const isValid = await verifyMasterPassword(password);
+    return { success: true, valid: isValid };
+  } catch (error) {
+    console.error('验证主密码失败:', error);
     return { success: false, error: error.message };
   }
 });

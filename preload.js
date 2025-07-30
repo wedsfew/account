@@ -8,5 +8,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   deleteAccount: (accountId) => ipcRenderer.invoke('delete-account', accountId),
   getCategories: () => ipcRenderer.invoke('get-categories'),
   addCategory: (name) => ipcRenderer.invoke('add-category', name),
-  deleteCategory: (categoryId) => ipcRenderer.invoke('delete-category', categoryId)
+  deleteCategory: (categoryId) => ipcRenderer.invoke('delete-category', categoryId),
+  setMasterPassword: (password) => ipcRenderer.invoke('set-master-password', password),
+  verifyMasterPassword: (password) => ipcRenderer.invoke('verify-master-password', password)
 });

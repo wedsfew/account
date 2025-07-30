@@ -107,6 +107,41 @@ body {
   display: block;
 }
 
+/* 主密码界面样式 */
+.master-password-form {
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 30px;
+  background-color: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.master-password-form .form-group {
+  margin-bottom: 20px;
+}
+
+.master-password-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.master-password-form input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  font-size: 16px;
+}
+
+.master-password-form .btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+}
+
 .view-header {
   display: flex;
   justify-content: space-between;
